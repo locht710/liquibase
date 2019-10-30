@@ -17,6 +17,7 @@ import liquibase.statement.core.CreateDatabaseChangeLogTableStatement;
 import liquibase.statement.core.MarkChangeSetRanStatement;
 import liquibase.statement.core.RemoveChangeSetRanStatusStatement;
 import liquibase.statement.core.UpdateChangeSetChecksumStatement;
+import liquibase.structure.core.Column;
 import liquibase.util.ISODateFormat;
 import liquibase.util.LiquibaseUtil;
 import liquibase.util.csv.CSVReader;
@@ -123,7 +124,12 @@ public class OfflineChangeLogHistoryService extends AbstractChangeLogHistoryServ
                      LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class).getOutputEncoding())
         ) {
             CSVWriter csvWriter = new CSVWriter(writer);
-            csvWriter.writeNext(Arrays.stream(Columns.values()).map(Enum::toString).toArray(String[]::new));
+            String[] columns = new String[Columns.values().length];
+            int i = 0;
+            for (Columns column : Columns.values()) {
+                columns[i++] = column.toString();
+            }
+            csvWriter.writeNext(columns);
         }
     }
 
@@ -216,11 +222,11 @@ public class OfflineChangeLogHistoryService extends AbstractChangeLogHistoryServ
                     csvWriter.writeNext(line);
                 }
             }
-            oldFile.delete();
-            newFile.renameTo(oldFile);
         } catch (Exception e) {
             throw new DatabaseException(e);
         }
+        oldFile.delete();
+        newFile.renameTo(oldFile);
     }
 
     protected void appendChangeSet(ChangeSet changeSet, ChangeSet.ExecType execType) throws DatabaseException {
@@ -259,11 +265,12 @@ public class OfflineChangeLogHistoryService extends AbstractChangeLogHistoryServ
 
             csvWriter.writeNext(newLine);
 
-            oldFile.delete();
-            newFile.renameTo(oldFile);
         } catch (Exception e) {
             throw new DatabaseException(e);
         }
+
+        oldFile.delete();
+        newFile.renameTo(oldFile);
     }
 
     @Override
